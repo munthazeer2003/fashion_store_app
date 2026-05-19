@@ -96,14 +96,25 @@ class LoginScreen extends StatelessWidget {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: viewModel.isBusy
-                          ? null
-                          : () async {
-                              final success = await viewModel.login();
-                              if (!context.mounted || !success) {
-                                return;
-                              }
-                              Navigator.pushReplacementNamed(context, AppRoutes.home);
-                            },
+                           ? null
+                           : () async {
+                               final success = await viewModel.login();
+                               if (!context.mounted) {
+                                 return;
+                               }
+                               if (!success) {
+                                 ScaffoldMessenger.of(context).showSnackBar(
+                                   SnackBar(
+                                     content: Text(
+                                       viewModel.errorMessage ??
+                                           'Login failed. Please try again.',
+                                     ),
+                                   ),
+                                 );
+                                 return;
+                               }
+                               Navigator.pushReplacementNamed(context, AppRoutes.home);
+                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: accentColor,
                         shape: RoundedRectangleBorder(

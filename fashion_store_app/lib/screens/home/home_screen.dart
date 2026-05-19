@@ -22,55 +22,72 @@ class HomeScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: backgroundColor,
           body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(context),
-                  const SizedBox(height: 18),
-                  StoreSearchBar(
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.allProducts);
-                    },
-                    onFilterTap: () {
-                      Navigator.pushNamed(context, AppRoutes.allProducts);
-                    },
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(context),
+                        const SizedBox(height: 18),
+                        StoreSearchBar(
+                          onTap: () {
+                            Navigator.pushNamed(context, AppRoutes.allProducts);
+                          },
+                          onFilterTap: () {
+                            Navigator.pushNamed(context, AppRoutes.allProducts);
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        CategoryChipsStrip(
+                          categories: viewModel.categories,
+                          selectedIndex: viewModel.selectedCategoryIndex,
+                          onTap: (index, category) {
+                            viewModel.selectCategory(index);
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.category,
+                              arguments: category,
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 18),
+                        if (viewModel.errorMessage != null)
+                          _buildErrorState(viewModel.errorMessage!)
+                        else if (viewModel.isBusy)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40),
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        else if (viewModel.products.isEmpty)
+                          _buildEmptyState()
+                        else ...[
+                          _buildPromoCard(context, accentColor),
+                          const SizedBox(height: 22),
+                          _buildSectionHeader(
+                            title: 'Popular Product',
+                            actionText: 'See all',
+                            onTap: () =>
+                                Navigator.pushNamed(context, AppRoutes.allProducts),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildPopularProducts(viewModel, accentColor),
+                          const SizedBox(height: 22),
+                          _buildSectionHeader(
+                            title: 'New Arrivals',
+                            actionText: 'Explore',
+                            onTap: () =>
+                                Navigator.pushNamed(context, AppRoutes.allProducts),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildProductGrid(viewModel),
+                        ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  CategoryChipsStrip(
-                    categories: viewModel.categories,
-                    selectedIndex: viewModel.selectedCategoryIndex,
-                    onTap: (index, category) {
-                      viewModel.selectCategory(index);
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.category,
-                        arguments: category,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 18),
-                  _buildPromoCard(context, accentColor),
-                  const SizedBox(height: 22),
-                  _buildSectionHeader(
-                    title: 'Popular Product',
-                    actionText: 'See all',
-                    onTap: () =>
-                        Navigator.pushNamed(context, AppRoutes.allProducts),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildPopularProducts(viewModel, accentColor),
-                  const SizedBox(height: 22),
-                  _buildSectionHeader(
-                    title: 'New Arrivals',
-                    actionText: 'Explore',
-                    onTap: () =>
-                        Navigator.pushNamed(context, AppRoutes.allProducts),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildProductGrid(viewModel),
-                ],
+                ),
               ),
             ),
           ),
@@ -197,6 +214,9 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildPopularProducts(HomeViewModel viewModel, Color accentColor) {
+    if (viewModel.popularProducts.isEmpty) {
+      return _buildSectionEmptyState('No popular products found.');
+    }
     return SizedBox(
       height: 190,
       child: ListView.separated(
@@ -270,6 +290,9 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildProductGrid(HomeViewModel viewModel) {
+    if (viewModel.newArrivals.isEmpty) {
+      return _buildSectionEmptyState('No new arrivals found.');
+    }
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -341,6 +364,48 @@ class HomeScreen extends StatelessWidget {
       onTap: (index) {
         AppNavigator.switchBottomTab(context, index);
       },
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 28),
+      child: Center(
+        child: Text(
+          message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.red),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 28),
+      child: Center(
+        child: Text(
+          'No products available right now.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.black54),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionEmptyState(String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: Colors.black54),
+      ),
     );
   }
 }

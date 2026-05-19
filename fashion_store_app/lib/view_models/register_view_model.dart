@@ -41,6 +41,14 @@ class RegisterViewModel extends BaseViewModel {
       setError('Please fill in all fields.');
       return false;
     }
+    if (!_isValidEmail(email)) {
+      setError('Please enter a valid email address.');
+      return false;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return false;
+    }
 
     if (password != confirm) {
       setError('Passwords do not match.');
@@ -62,6 +70,11 @@ class RegisterViewModel extends BaseViewModel {
     } finally {
       setBusy(false);
     }
+  }
+
+  bool _isValidEmail(String email) {
+    final regex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    return regex.hasMatch(email);
   }
 
   @override

@@ -103,9 +103,9 @@ class ProductDetailScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Footwear',
-                            style: TextStyle(color: Colors.black54),
+                          Text(
+                            product.category,
+                            style: const TextStyle(color: Colors.black54),
                           ),
                         ],
                       ),
@@ -175,13 +175,49 @@ class ProductDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 18),
                       const Text(
+                        'Quantity',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFBE9E2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildQtyButton(
+                              icon: Icons.remove,
+                              onTap: viewModel.decrementQuantity,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              child: Text(
+                                '${viewModel.quantity}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            _buildQtyButton(
+                              icon: Icons.add,
+                              onTap: viewModel.incrementQuantity,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
                         'Description',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'This is a description of the product 1',
-                        style: TextStyle(color: Colors.black54, height: 1.4),
+                      Text(
+                        product.description.isEmpty
+                            ? 'No description available for this product.'
+                            : product.description,
+                        style: const TextStyle(color: Colors.black54, height: 1.4),
                       ),
                     ],
                   ),
@@ -205,12 +241,17 @@ class ProductDetailScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Added to cart')),
                           );
+                          Navigator.pushNamed(context, AppRoutes.cart);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please login to add items to cart')),
+                            SnackBar(
+                              content: Text(
+                                viewModel.errorMessage ??
+                                    'Please login to add items to cart',
+                              ),
+                            ),
                           );
                         }
-                        Navigator.pushNamed(context, AppRoutes.cart);
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.black87,
@@ -248,6 +289,20 @@ class ProductDetailScreen extends StatelessWidget {
       },
     );
   }
+}
+
+Widget _buildQtyButton({
+  required IconData icon,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(10),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Icon(icon, size: 16, color: const Color(0xFFF26B3A)),
+    ),
+  );
 }
 
 class ShareProductScreen extends StatelessWidget {

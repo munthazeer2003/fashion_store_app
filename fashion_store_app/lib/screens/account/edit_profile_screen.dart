@@ -157,9 +157,25 @@ class EditProfileScreen extends StatelessWidget {
                       ? null
                       : () async {
                           final success = await viewModel.saveProfile();
-                          if (!context.mounted || !success) {
+                          if (!context.mounted) {
                             return;
                           }
+                          if (!success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  viewModel.errorMessage ??
+                                      'Unable to save profile. Please try again.',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Profile updated successfully'),
+                            ),
+                          );
                           Navigator.pop(context);
                         },
                   style: ElevatedButton.styleFrom(

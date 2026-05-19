@@ -7,9 +7,11 @@ class ProductDetailViewModel extends BaseViewModel {
   final CartViewModel _cartViewModel = CartViewModel();
 
   int _selectedSizeIndex = 3;
+  int _quantity = 1;
   bool _isFavorite = false;
 
   int get selectedSizeIndex => _selectedSizeIndex;
+  int get quantity => _quantity;
   bool get isFavorite => _isFavorite;
 
   void selectSize(int index) {
@@ -25,8 +27,29 @@ class ProductDetailViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  Future<bool> addToCart(Product product) {
-    return _cartViewModel.addProduct(product);
+  void incrementQuantity() {
+    if (_quantity >= 99) {
+      return;
+    }
+    _quantity += 1;
+    notifyListeners();
+  }
+
+  void decrementQuantity() {
+    if (_quantity <= 1) {
+      return;
+    }
+    _quantity -= 1;
+    notifyListeners();
+  }
+
+  Future<bool> addToCart(Product product) async {
+    clearError();
+    final added = await _cartViewModel.addProduct(product, quantity: _quantity);
+    if (!added && _cartViewModel.errorMessage != null) {
+      setError(_cartViewModel.errorMessage);
+    }
+    return added;
   }
 
   @override

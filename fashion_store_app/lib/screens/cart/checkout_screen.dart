@@ -143,9 +143,25 @@ class CheckoutScreen extends StatelessWidget {
                       ? null
                       : () async {
                           final orderId = await viewModel.placeOrder();
-                          if (!context.mounted || orderId == null) {
+                          if (!context.mounted) {
                             return;
                           }
+                          if (orderId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  viewModel.errorMessage ??
+                                      'Unable to place order. Please try again.',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Order placed successfully'),
+                            ),
+                          );
                           Navigator.pushNamed(context, AppRoutes.orderConfirmation);
                         },
                   style: ElevatedButton.styleFrom(

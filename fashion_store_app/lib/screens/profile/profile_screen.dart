@@ -17,6 +17,14 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
+                if (viewModel.isBusy) const LinearProgressIndicator(minHeight: 2),
+                if (viewModel.errorMessage != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    viewModel.errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ],
                 CircleAvatar(
                   radius: 40,
                   backgroundColor: const Color(0xFFF2F2F2),
@@ -45,8 +53,19 @@ class ProfileScreen extends StatelessWidget {
                   leading: const Icon(Icons.logout),
                   title: const Text('Logout'),
                   onTap: () async {
-                    await viewModel.logout();
+                    final success = await viewModel.logout();
                     if (!context.mounted) {
+                      return;
+                    }
+                    if (!success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            viewModel.errorMessage ??
+                                'Logout failed. Please try again.',
+                          ),
+                        ),
+                      );
                       return;
                     }
                     Navigator.pushReplacementNamed(context, AppRoutes.login);

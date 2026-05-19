@@ -23,21 +23,64 @@ class CartScreen extends StatelessWidget {
               onPressed: () => Navigator.pop(context),
             ),
           ),
-          body: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-            itemCount: viewModel.items.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final item = viewModel.items[index];
-              return _buildCartRow(item, accentColor, index, viewModel);
-            },
-          ),
+          body: _buildBody(viewModel, accentColor),
           bottomNavigationBar: _buildSummaryBar(
             context,
             accentColor,
             viewModel,
           ),
         );
+      },
+    );
+  }
+
+  Widget _buildBody(CartViewModel viewModel, Color accentColor) {
+    if (viewModel.isBusy) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (!viewModel.isLoggedIn) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            'Please login to view your cart.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.black54),
+          ),
+        ),
+      );
+    }
+    if (viewModel.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            viewModel.errorMessage!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      );
+    }
+    if (viewModel.items.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            'Your cart is empty.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.black54),
+          ),
+        ),
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      itemCount: viewModel.items.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
+        final item = viewModel.items[index];
+        return _buildCartRow(item, accentColor, index, viewModel);
       },
     );
   }
@@ -69,7 +112,7 @@ class CartScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Total',
+                    'Subtotal',
                     style: TextStyle(color: Colors.black54, fontSize: 12),
                   ),
                   const SizedBox(height: 4),

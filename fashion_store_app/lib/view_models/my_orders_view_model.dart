@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../core/mvvm/base_view_model.dart';
 import '../models/order_model.dart';
+import '../services/firebase_error_mapper.dart';
 import '../services/firestore_service.dart';
 
 class MyOrdersViewModel extends BaseViewModel {
@@ -24,6 +25,9 @@ class MyOrdersViewModel extends BaseViewModel {
   void _listenOrders() {
     final uid = _auth.currentUser?.uid;
     if (uid == null) {
+      _orders = [];
+      setBusy(false);
+      notifyListeners();
       return;
     }
 
@@ -34,7 +38,7 @@ class MyOrdersViewModel extends BaseViewModel {
       setBusy(false);
     }, onError: (error) {
       setBusy(false);
-      setError(error.toString());
+      setError(mapFirebaseError(error));
     });
   }
 

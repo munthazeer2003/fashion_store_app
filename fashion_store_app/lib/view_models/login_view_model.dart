@@ -29,6 +29,10 @@ class LoginViewModel extends BaseViewModel {
       setError('Email and password are required.');
       return false;
     }
+    if (!_isValidEmail(email)) {
+      setError('Please enter a valid email address.');
+      return false;
+    }
 
     try {
       setBusy(true);
@@ -46,6 +50,11 @@ class LoginViewModel extends BaseViewModel {
     } finally {
       setBusy(false);
     }
+  }
+
+  bool _isValidEmail(String email) {
+    final regex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    return regex.hasMatch(email);
   }
 
   @override

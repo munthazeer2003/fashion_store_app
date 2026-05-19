@@ -102,7 +102,18 @@ class RegisterScreen extends StatelessWidget {
                       ? null
                       : () async {
                           final success = await viewModel.register();
-                          if (!context.mounted || !success) {
+                          if (!context.mounted) {
+                            return;
+                          }
+                          if (!success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  viewModel.errorMessage ??
+                                      'Registration failed. Please try again.',
+                                ),
+                              ),
+                            );
                             return;
                           }
                           Navigator.pushReplacementNamed(context, AppRoutes.home);

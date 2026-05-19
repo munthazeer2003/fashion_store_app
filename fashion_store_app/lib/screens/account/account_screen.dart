@@ -37,10 +37,23 @@ class AccountScreen extends StatelessWidget {
               ),
             ],
           ),
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-            children: [
-              Container(
+           body: ListView(
+             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+             children: [
+               if (viewModel.isBusy)
+                 const Padding(
+                   padding: EdgeInsets.only(bottom: 12),
+                   child: LinearProgressIndicator(minHeight: 2),
+                 ),
+               if (viewModel.errorMessage != null)
+                 Padding(
+                   padding: const EdgeInsets.only(bottom: 12),
+                   child: Text(
+                     viewModel.errorMessage!,
+                     style: const TextStyle(color: Colors.red),
+                   ),
+                 ),
+               Container(
                 padding: const EdgeInsets.symmetric(
                   vertical: 18,
                   horizontal: 16,
@@ -189,18 +202,30 @@ class AccountScreen extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: viewModel.isBusy
+                        ? null
+                        : () async {
                       Navigator.pop(dialogContext);
-                      viewModel.logout().then((_) {
-                        if (!context.mounted) {
-                          return;
-                        }
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          AppRoutes.login,
-                          (route) => false,
+                      final success = await viewModel.logout();
+                      if (!context.mounted) {
+                        return;
+                      }
+                      if (!success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              viewModel.errorMessage ??
+                                  'Logout failed. Please try again.',
+                            ),
+                          ),
                         );
-                      });
+                        return;
+                      }
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.login,
+                        (route) => false,
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFF26B3A),

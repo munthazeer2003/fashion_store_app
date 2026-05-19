@@ -6,6 +6,7 @@ import '../core/constants.dart';
 import '../core/mvvm/base_view_model.dart';
 import '../models/cart_item_model.dart';
 import '../models/user_profile_model.dart';
+import '../services/firebase_error_mapper.dart';
 import '../services/firestore_service.dart';
 
 class CheckoutViewModel extends BaseViewModel {
@@ -43,6 +44,7 @@ class CheckoutViewModel extends BaseViewModel {
   String get total => '${AppConstants.currency} ${totalValue.toStringAsFixed(2)}';
 
   Future<String?> placeOrder() async {
+    clearError();
     final uid = _auth.currentUser?.uid;
     if (uid == null) {
       setError('Please login to place your order.');
@@ -50,6 +52,10 @@ class CheckoutViewModel extends BaseViewModel {
     }
     if (_items.isEmpty) {
       setError('Your cart is empty.');
+      return null;
+    }
+    if (_profile?.defaultAddress == null) {
+      setError('Please add a shipping address before placing your order.');
       return null;
     }
 
@@ -67,7 +73,7 @@ class CheckoutViewModel extends BaseViewModel {
       );
       return orderId;
     } catch (error) {
-      setError(error.toString());
+      setError(mapFirebaseError(error));
       return null;
     } finally {
       setBusy(false);
@@ -77,19 +83,29 @@ class CheckoutViewModel extends BaseViewModel {
   void _listenData() {
     final uid = _auth.currentUser?.uid;
     if (uid == null) {
+      _items = [];
+      _profile = null;
+      notifyListeners();
       return;
     }
 
+    setBusy(true);
     _cartSub?.cancel();
     _cartSub = _firestoreService.streamCart(uid).listen((items) {
       _items = items;
+      setBusy(false);
       notifyListeners();
+    }, onError: (error) {
+      setBusy(false);
+      setError(mapFirebaseError(error));
     });
 
     _profileSub?.cancel();
     _profileSub = _firestoreService.streamUserProfile(uid).listen((profile) {
       _profile = profile;
       notifyListeners();
+    }, onError: (error) {
+      setError(mapFirebaseError(error));
     });
   }
 

@@ -50,23 +50,52 @@ class MyOrdersScreen extends StatelessWidget {
             ),
             body: TabBarView(
               children: [
-                _buildOrdersList(
-                  viewModel.ordersForStatus(OrderStatus.active),
-                  accentColor,
+                _buildOrdersTab(
+                  viewModel: viewModel,
+                  orders: viewModel.ordersForStatus(OrderStatus.active),
+                  accentColor: accentColor,
                 ),
-                _buildOrdersList(
-                  viewModel.ordersForStatus(OrderStatus.completed),
-                  accentColor,
+                _buildOrdersTab(
+                  viewModel: viewModel,
+                  orders: viewModel.ordersForStatus(OrderStatus.completed),
+                  accentColor: accentColor,
                 ),
-                _buildOrdersList(
-                  viewModel.ordersForStatus(OrderStatus.cancelled),
-                  accentColor,
+                _buildOrdersTab(
+                  viewModel: viewModel,
+                  orders: viewModel.ordersForStatus(OrderStatus.cancelled),
+                  accentColor: accentColor,
                 ),
               ],
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildOrdersTab({
+    required MyOrdersViewModel viewModel,
+    required List<OrderModel> orders,
+    required Color accentColor,
+  }) {
+    if (viewModel.isBusy) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (viewModel.errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            viewModel.errorMessage!,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      );
+    }
+    return _buildOrdersList(
+      orders,
+      accentColor,
     );
   }
 
