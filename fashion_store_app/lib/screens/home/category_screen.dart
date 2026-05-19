@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../core/navigation/app_navigator.dart';
-import '../../data/dummy_products.dart';
+
+import '../../core/mvvm/view_model_builder.dart';
 import '../../models/product_model.dart';
+import '../../view_models/product_catalog_view_model.dart';
 import '../widgets/animated_product_card.dart';
+import '../../core/navigation/app_navigator.dart';
 
 class CategoryScreen extends StatelessWidget {
   final String categoryName;
@@ -14,43 +16,47 @@ class CategoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool showAll = categoryName.toLowerCase() == 'all';
-    final String normalizedCategory = categoryName.toLowerCase();
-    final List<Product> filteredProducts = dummyProducts.where((product) {
-      if (showAll) {
-        return true;
-      }
-      if (product.category.toLowerCase() == normalizedCategory) {
-        return true;
-      }
-      return product.name.toLowerCase().contains(normalizedCategory);
-    }).toList();
+    return ViewModelBuilder<ProductCatalogViewModel>(
+      create: (_) => ProductCatalogViewModel(),
+      builder: (context, viewModel, child) {
+        final normalizedCategory = categoryName.toLowerCase();
+        final List<Product> filteredProducts = viewModel.products.where((product) {
+          if (normalizedCategory == 'all') {
+            return true;
+          }
+          if (product.category.toLowerCase() == normalizedCategory) {
+            return true;
+          }
+          return product.name.toLowerCase().contains(normalizedCategory);
+        }).toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(categoryName),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: GridView.builder(
-          itemCount: filteredProducts.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.7,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(categoryName),
           ),
-          itemBuilder: (context, index) {
-            final product = filteredProducts[index];
-            return AnimatedProductCard(
-              product: product,
-              onTap: () {
-                AppNavigator.toProductDetails(context, product);
+          body: Padding(
+            padding: const EdgeInsets.all(12),
+            child: GridView.builder(
+              itemCount: filteredProducts.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.7,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemBuilder: (context, index) {
+                final product = filteredProducts[index];
+                return AnimatedProductCard(
+                  product: product,
+                  onTap: () {
+                    AppNavigator.toProductDetails(context, product);
+                  },
+                );
               },
-            );
-          },
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

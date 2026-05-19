@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/app_routes.dart';
 import '../../core/mvvm/view_model_builder.dart';
+import '../../models/cart_item_model.dart';
 import '../../view_models/cart_view_model.dart';
 
 class CartScreen extends StatelessWidget {
@@ -108,7 +109,7 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _buildCartRow(
-    CartItem item,
+    CartItemModel item,
     Color accentColor,
     int index,
     CartViewModel viewModel,
@@ -130,8 +131,10 @@ class CartScreen extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              item.image,
+            child: Image(
+              image: item.isNetworkImage
+                  ? NetworkImage(item.image)
+                  : AssetImage(item.image) as ImageProvider,
               width: 64,
               height: 64,
               fit: BoxFit.contain,
@@ -170,8 +173,8 @@ class CartScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               IconButton(
-                onPressed: () {
-                  viewModel.removeAt(index);
+                onPressed: () async {
+                  await viewModel.removeAt(index);
                 },
                 icon: Icon(Icons.delete_outline, color: accentColor),
               ),
@@ -186,7 +189,9 @@ class CartScreen extends StatelessWidget {
                   children: [
                     _buildQtyButton(
                       icon: Icons.remove,
-                      onTap: () => viewModel.decrement(index),
+                      onTap: () {
+                        viewModel.decrement(index);
+                      },
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -197,7 +202,9 @@ class CartScreen extends StatelessWidget {
                     ),
                     _buildQtyButton(
                       icon: Icons.add,
-                      onTap: () => viewModel.increment(index),
+                      onTap: () {
+                        viewModel.increment(index);
+                      },
                     ),
                   ],
                 ),

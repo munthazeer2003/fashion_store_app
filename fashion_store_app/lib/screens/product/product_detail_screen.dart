@@ -66,8 +66,10 @@ class ProductDetailScreen extends StatelessWidget {
                   color: const Color(0xFFF8F8F8),
                   child: Hero(
                     tag: product.image,
-                    child: Image.asset(
-                      product.image,
+                    child: Image(
+                      image: product.isNetworkImage
+                          ? NetworkImage(product.image)
+                          : AssetImage(product.image) as ImageProvider,
                       width: double.infinity,
                       fit: BoxFit.contain,
                       alignment: Alignment.center,
@@ -194,7 +196,20 @@ class ProductDetailScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        final added = await viewModel.addToCart(product);
+                        if (!context.mounted) {
+                          return;
+                        }
+                        if (added) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Added to cart')),
+                          );
+                        } else if (viewModel.errorMessage != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(viewModel.errorMessage!)),
+                          );
+                        }
                         Navigator.pushNamed(context, AppRoutes.cart);
                       },
                       style: OutlinedButton.styleFrom(

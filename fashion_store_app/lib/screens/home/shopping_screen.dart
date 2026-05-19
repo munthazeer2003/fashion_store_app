@@ -251,8 +251,8 @@ class ShoppingScreen extends StatelessWidget {
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(14),
-                      child: Image.asset(
-                        product.image,
+                      child: Image(
+                        image: product.isNetworkImage ? NetworkImage(product.image) : AssetImage(product.image) as ImageProvider,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(

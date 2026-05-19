@@ -53,10 +53,13 @@ class EditProfileScreen extends StatelessWidget {
                           child: CircleAvatar(
                             radius: 48,
                             backgroundColor: const Color(0xFFF2F2F2),
-                            foregroundImage: selectedBytes == null
-                                ? const AssetImage(
-                                    'assets/images/profile/profile.png',
-                                  )
+                             foregroundImage: selectedBytes == null
+                                ? (viewModel.hasNetworkProfileImage
+                                      ? NetworkImage(viewModel.profileImageUrl)
+                                      : const AssetImage(
+                                          'assets/images/profile/profile.png',
+                                        ))
+                                  as ImageProvider
                                 : MemoryImage(selectedBytes),
                             onForegroundImageError:
                                 (exception, stackTrace) {},
@@ -150,7 +153,15 @@ class EditProfileScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: viewModel.isBusy
+                      ? null
+                      : () async {
+                          final success = await viewModel.saveProfile();
+                          if (!context.mounted || !success) {
+                            return;
+                          }
+                          Navigator.pop(context);
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _accent,
                     foregroundColor: Colors.white,
@@ -159,12 +170,28 @@ class EditProfileScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text(
-                    'Save Changes',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
+                  child: viewModel.isBusy
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Save Changes',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                 ),
               ),
+              if (viewModel.errorMessage != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  viewModel.errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ],
             ],
           );
         },

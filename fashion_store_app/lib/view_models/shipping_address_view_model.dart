@@ -1,49 +1,75 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../core/mvvm/base_view_model.dart';
+import '../models/user_profile_model.dart';
+import '../services/firestore_service.dart';
 
 class ShippingAddressViewModel extends BaseViewModel {
-  final List<AddressItem> _addresses = [
-    const AddressItem(
-      title: 'Home',
-      isDefault: true,
-      addressLine1: '123 Main Street, Apt 4B',
-      addressLine2: 'New York, NY 10001',
-    ),
-    const AddressItem(
-      title: 'Office',
-      isDefault: false,
-      addressLine1: '800 Market Street, Suite 200',
-      addressLine2: 'San Francisco, CA 94103',
-    ),
-  ];
+  final FirestoreService _firestoreService = FirestoreService.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  List<AddressItem> _addresses = [];
+  StreamSubscription<UserProfileModel?>? _sub;
+
+  ShippingAddressViewModel() {
+    _listenProfile();
+  }
 
   List<AddressItem> get addresses => List.unmodifiable(_addresses);
 
-  void addAddress(AddressItem item) {
-    _addresses.add(item);
-    notifyListeners();
+  Future<void> addAddress(AddressItem item) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      return;
+    }
+    final list = List<AddressItem>.from(_addresses)..add(item);
+    await _saveAddresses(uid, list);
   }
 
-  void updateAddress(int index, AddressItem item) {
-    _addresses[index] = item;
-    notifyListeners();
+  Future<void> updateAddress(int index, AddressItem item) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null || index < 0 || index >= _addresses.length) {
+      return;
+    }
+    final list = List<AddressItem>.from(_addresses);
+    list[index] = item;
+    await _saveAddresses(uid, list);
   }
 
-  void removeAddress(int index) {
-    _addresses.removeAt(index);
-    notifyListeners();
+  Future<void> removeAddress(int index) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null || index < 0 || index >= _addresses.length) {
+      return;
+    }
+    final list = List<AddressItem>.from(_addresses)..removeAt(index);
+    await _saveAddresses(uid, list);
   }
-}
 
-class AddressItem {
-  final String title;
-  final bool isDefault;
-  final String addressLine1;
-  final String addressLine2;
+  Future<void> _saveAddresses(String uid, List<AddressItem> addresses) async {
+    final existing = await _firestoreService.streamUserProfile(uid).first;
+    if (existing == null) {
+      return;
+    }
+    await _firestoreService.updateUserProfile(profile: existing.copyWith(addresses: addresses));
+  }
 
-  const AddressItem({
-    required this.title,
-    required this.isDefault,
-    required this.addressLine1,
-    required this.addressLine2,
-  });
+  void _listenProfile() {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      return;
+    }
+    _sub?.cancel();
+    _sub = _firestoreService.streamUserProfile(uid).listen((profile) {
+      _addresses = profile?.addresses ?? [];
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
 }

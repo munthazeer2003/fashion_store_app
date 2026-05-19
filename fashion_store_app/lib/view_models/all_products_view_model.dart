@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../data/dummy_products.dart';
+
 import '../models/product_model.dart';
 import 'product_catalog_view_model.dart';
 
@@ -9,19 +9,13 @@ class AllProductsViewModel extends ProductCatalogViewModel {
 
   List<String> get filterCategories => categories;
 
-  void refreshFilters() {
-    notifyListeners();
-  }
-
+  @override
   List<Product> get filteredProducts {
+    final base = super.filteredProducts;
     final double? minPrice = double.tryParse(minController.text);
     final double? maxPrice = double.tryParse(maxController.text);
-    final String selectedCategory = categories[selectedCategoryIndex];
 
-    return dummyProducts.where((product) {
-      if (selectedCategory != 'All' && product.category != selectedCategory) {
-        return false;
-      }
+    return base.where((product) {
       if (minPrice != null && product.price < minPrice) {
         return false;
       }
@@ -30,6 +24,10 @@ class AllProductsViewModel extends ProductCatalogViewModel {
       }
       return true;
     }).toList();
+  }
+
+  void refreshFilters() {
+    notifyListeners();
   }
 
   @override

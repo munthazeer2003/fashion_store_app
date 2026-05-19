@@ -124,6 +124,13 @@ class CheckoutScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              if (viewModel.errorMessage != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  viewModel.errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ],
             ],
           ),
           bottomNavigationBar: SafeArea(
@@ -131,9 +138,16 @@ class CheckoutScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
               child: SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, AppRoutes.orderConfirmation),
+                  child: ElevatedButton(
+                  onPressed: viewModel.isBusy
+                      ? null
+                      : () async {
+                          final orderId = await viewModel.placeOrder();
+                          if (!context.mounted || orderId == null) {
+                            return;
+                          }
+                          Navigator.pushNamed(context, AppRoutes.orderConfirmation);
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _accent,
                     foregroundColor: Colors.white,
@@ -142,7 +156,16 @@ class CheckoutScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: Text('Place Order (${viewModel.total})'),
+                  child: viewModel.isBusy
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text('Place Order (${viewModel.total})'),
                 ),
               ),
             ),

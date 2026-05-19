@@ -58,11 +58,14 @@ class AccountScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 38,
-                      backgroundColor: const Color(0xFFF2F2F2),
-                      foregroundImage: AssetImage(viewModel.profileImage),
-                      onForegroundImageError: (exception, stackTrace) {},
+                     CircleAvatar(
+                       radius: 38,
+                       backgroundColor: const Color(0xFFF2F2F2),
+                       foregroundImage: viewModel.hasNetworkProfileImage
+                           ? NetworkImage(viewModel.profileImage)
+                           : const AssetImage('assets/images/profile/profile.png')
+                               as ImageProvider,
+                       onForegroundImageError: (exception, stackTrace) {},
                       child: const Icon(
                         Icons.person,
                         color: Colors.black45,
@@ -120,7 +123,7 @@ class AccountScreen extends StatelessWidget {
               _buildMenuTile(
                 icon: Icons.logout,
                 title: 'Logout',
-                onTap: () => _showLogoutDialog(context),
+                onTap: () => _showLogoutDialog(context, viewModel),
                 accentColor: accentColor,
               ),
             ],
@@ -131,7 +134,7 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context) {
+  void _showLogoutDialog(BuildContext context, AccountViewModel viewModel) {
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -188,11 +191,16 @@ class AccountScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(dialogContext);
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        AppRoutes.login,
-                        (route) => false,
-                      );
+                      viewModel.logout().then((_) {
+                        if (!context.mounted) {
+                          return;
+                        }
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          AppRoutes.login,
+                          (route) => false,
+                        );
+                      });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFF26B3A),

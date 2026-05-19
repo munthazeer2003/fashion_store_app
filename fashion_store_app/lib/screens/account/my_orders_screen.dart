@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../models/order_model.dart';
 import '../../core/mvvm/view_model_builder.dart';
 import '../../view_models/my_orders_view_model.dart';
 
@@ -69,7 +70,7 @@ class MyOrdersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrdersList(List<OrderItem> orders, Color accentColor) {
+  Widget _buildOrdersList(List<OrderModel> orders, Color accentColor) {
     if (orders.isEmpty) {
       return Center(
         child: Text(
@@ -91,7 +92,7 @@ class MyOrdersScreen extends StatelessWidget {
 
   Widget _buildOrderCard(
     BuildContext context,
-    OrderItem order,
+    OrderModel order,
     Color accentColor,
   ) {
     return Container(
@@ -113,10 +114,12 @@ class MyOrdersScreen extends StatelessWidget {
                   color: const Color(0xFFF6F6F6),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Image.asset(
-                  order.image,
-                  fit: BoxFit.contain,
-                  alignment: Alignment.center,
+                       child: Image(
+                         image: order.previewImage.startsWith('http://') || order.previewImage.startsWith('https://')
+                             ? NetworkImage(order.previewImage)
+                             : AssetImage(order.previewImage) as ImageProvider,
+                         fit: BoxFit.contain,
+                         alignment: Alignment.center,
                   errorBuilder: (context, error, stackTrace) {
                     return const Icon(
                       Icons.image_not_supported,
@@ -225,7 +228,7 @@ String statusLabel(OrderStatus status) {
 }
 
 class OrderDetailsScreen extends StatelessWidget {
-  final OrderItem order;
+  final OrderModel order;
 
   const OrderDetailsScreen({super.key, required this.order});
 
@@ -272,10 +275,12 @@ class OrderDetailsScreen extends StatelessWidget {
                         color: const Color(0xFFF6F6F6),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Image.asset(
-                        order.image,
-                        fit: BoxFit.contain,
-                        alignment: Alignment.center,
+                       child: Image(
+                         image: order.previewImage.startsWith('http://') || order.previewImage.startsWith('https://')
+                             ? NetworkImage(order.previewImage)
+                             : AssetImage(order.previewImage) as ImageProvider,
+                         fit: BoxFit.contain,
+                         alignment: Alignment.center,
                         errorBuilder: (context, error, stackTrace) {
                           return const Icon(
                             Icons.image_not_supported,

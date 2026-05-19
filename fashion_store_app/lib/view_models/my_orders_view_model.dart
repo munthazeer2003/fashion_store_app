@@ -1,56 +1,46 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../core/mvvm/base_view_model.dart';
+import '../models/order_model.dart';
+import '../services/firestore_service.dart';
 
 class MyOrdersViewModel extends BaseViewModel {
-  final List<OrderItem> _orders = [
-    OrderItem(
-      id: '#1234',
-      itemsCount: 2,
-      total: 299.99,
-      image: 'assets/images/products/shoes/shoe_1.jpg',
-      status: OrderStatus.active,
-    ),
-    OrderItem(
-      id: '#1235',
-      itemsCount: 1,
-      total: 89.50,
-      image: 'assets/images/products/shoes/shoe_2.jpg',
-      status: OrderStatus.active,
-    ),
-    OrderItem(
-      id: '#1236',
-      itemsCount: 3,
-      total: 159.75,
-      image: 'assets/images/products/women/women_dress_1.jpg',
-      status: OrderStatus.completed,
-    ),
-    OrderItem(
-      id: '#1237',
-      itemsCount: 1,
-      total: 49.99,
-      image: 'assets/images/products/men/men_shirt_1.jpg',
-      status: OrderStatus.cancelled,
-    ),
-  ];
+  final FirestoreService _firestoreService = FirestoreService.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  List<OrderItem> ordersForStatus(OrderStatus status) {
+  List<OrderModel> _orders = [];
+  StreamSubscription<List<OrderModel>>? _sub;
+
+  MyOrdersViewModel() {
+    _listenOrders();
+  }
+
+  List<OrderModel> ordersForStatus(OrderStatus status) {
     return _orders.where((order) => order.status == status).toList();
   }
-}
 
-enum OrderStatus { active, completed, cancelled }
+  void _listenOrders() {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      return;
+    }
 
-class OrderItem {
-  OrderItem({
-    required this.id,
-    required this.itemsCount,
-    required this.total,
-    required this.image,
-    required this.status,
-  });
+    setBusy(true);
+    _sub?.cancel();
+    _sub = _firestoreService.streamOrders(uid).listen((orders) {
+      _orders = orders;
+      setBusy(false);
+    }, onError: (error) {
+      setBusy(false);
+      setError(error.toString());
+    });
+  }
 
-  final String id;
-  final int itemsCount;
-  final double total;
-  final String image;
-  final OrderStatus status;
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
 }

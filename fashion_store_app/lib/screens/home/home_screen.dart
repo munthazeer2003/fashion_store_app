@@ -229,8 +229,8 @@ class HomeScreen extends StatelessWidget {
                   Expanded(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.asset(
-                        product.image,
+                      child: Image(
+                        image: product.isNetworkImage ? NetworkImage(product.image) : AssetImage(product.image) as ImageProvider,
                         width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
@@ -298,8 +298,8 @@ class HomeScreen extends StatelessWidget {
                 Expanded(
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      product.image,
+                    child: Image(
+                      image: product.isNetworkImage ? NetworkImage(product.image) : AssetImage(product.image) as ImageProvider,
                       width: double.infinity,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {

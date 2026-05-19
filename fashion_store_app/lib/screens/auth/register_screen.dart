@@ -43,21 +43,24 @@ class RegisterScreen extends StatelessWidget {
                 style: TextStyle(color: _textMuted),
               ),
               const SizedBox(height: 24),
-              const _InputField(
+              _InputField(
                 hintText: 'Full Name',
                 icon: Icons.person_outline,
+                controller: viewModel.nameController,
               ),
               const SizedBox(height: 12),
-              const _InputField(
+              _InputField(
                 hintText: 'Email',
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
+                controller: viewModel.emailController,
               ),
               const SizedBox(height: 12),
               _InputField(
                 hintText: 'Password',
                 icon: Icons.lock_outline,
                 obscureText: !viewModel.passwordVisible,
+                controller: viewModel.passwordController,
                 suffixIcon: IconButton(
                   onPressed: viewModel.togglePasswordVisibility,
                   icon: Icon(
@@ -73,6 +76,7 @@ class RegisterScreen extends StatelessWidget {
                 hintText: 'Confirm Password',
                 icon: Icons.lock_outline,
                 obscureText: !viewModel.confirmVisible,
+                controller: viewModel.confirmController,
                 suffixIcon: IconButton(
                   onPressed: viewModel.toggleConfirmVisibility,
                   icon: Icon(
@@ -83,13 +87,26 @@ class RegisterScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              if (viewModel.errorMessage != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  viewModel.errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ],
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, AppRoutes.home);
-                  },
+                  onPressed: viewModel.isBusy
+                      ? null
+                      : () async {
+                          final success = await viewModel.register();
+                          if (!context.mounted || !success) {
+                            return;
+                          }
+                          Navigator.pushReplacementNamed(context, AppRoutes.home);
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _accent,
                     foregroundColor: Colors.white,
@@ -98,10 +115,19 @@ class RegisterScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text(
-                    'Sign Up',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
+                  child: viewModel.isBusy
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text(
+                          'Sign Up',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                 ),
               ),
             ],
@@ -119,6 +145,7 @@ class _InputField extends StatelessWidget {
     this.keyboardType,
     this.obscureText = false,
     this.suffixIcon,
+    this.controller,
   });
 
   final String hintText;
@@ -126,10 +153,12 @@ class _InputField extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final Widget? suffixIcon;
+  final TextEditingController? controller;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
       decoration: InputDecoration(

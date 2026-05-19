@@ -39,7 +39,10 @@ class AllProductsScreen extends StatelessWidget {
             actions: [
               IconButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, AppRoutes.shopping);
+                  showSearch<void>(
+                    context: context,
+                    delegate: _ProductSearchDelegate(viewModel),
+                  );
                 },
                 icon: const Icon(Icons.search, color: Colors.black87),
               ),
@@ -118,8 +121,8 @@ class AllProductsScreen extends StatelessWidget {
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(14),
-                      child: Image.asset(
-                        product.image,
+                      child: Image(
+                        image: product.isNetworkImage ? NetworkImage(product.image) : AssetImage(product.image) as ImageProvider,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
@@ -336,5 +339,47 @@ class AllProductsScreen extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _ProductSearchDelegate extends SearchDelegate<void> {
+  final AllProductsViewModel viewModel;
+
+  _ProductSearchDelegate(this.viewModel);
+
+  @override
+  String? get searchFieldLabel => 'Search products';
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+        onPressed: () {
+          query = '';
+          viewModel.setSearchQuery('');
+        },
+        icon: const Icon(Icons.clear),
+      ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      onPressed: () => close(context, null),
+      icon: const Icon(Icons.arrow_back),
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    viewModel.setSearchQuery(query);
+    return const SizedBox.shrink();
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    viewModel.setSearchQuery(query);
+    return const SizedBox.shrink();
   }
 }

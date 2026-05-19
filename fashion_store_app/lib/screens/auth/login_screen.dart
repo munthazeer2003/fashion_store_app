@@ -34,6 +34,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 28),
                   TextField(
+                    controller: viewModel.emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       hintText: 'Email',
@@ -49,6 +50,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                    controller: viewModel.passwordController,
                     obscureText: viewModel.obscurePassword,
                     decoration: InputDecoration(
                       hintText: 'Password',
@@ -70,6 +72,13 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (viewModel.errorMessage != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      viewModel.errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ],
                   const SizedBox(height: 6),
                   Align(
                     alignment: Alignment.centerRight,
@@ -86,19 +95,34 @@ class LoginScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, AppRoutes.home);
-                      },
+                      onPressed: viewModel.isBusy
+                          ? null
+                          : () async {
+                              final success = await viewModel.login();
+                              if (!context.mounted || !success) {
+                                return;
+                              }
+                              Navigator.pushReplacementNamed(context, AppRoutes.home);
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: accentColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Sign In',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
+                      child: viewModel.isBusy
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text(
+                              'Sign In',
+                              style: TextStyle(fontSize: 16, color: Colors.white),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 16),

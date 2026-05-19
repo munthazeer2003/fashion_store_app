@@ -24,8 +24,8 @@ class AnimatedProductCard extends StatelessWidget {
               tag: product.image,
               child: AspectRatio(
                 aspectRatio: 4 / 3,
-                child: Image.asset(
-                  product.image,
+                child: Image(
+                  image: product.isNetworkImage ? NetworkImage(product.image) : AssetImage(product.image) as ImageProvider,
                   width: double.infinity,
                   fit: BoxFit.contain,
                   alignment: Alignment.center,

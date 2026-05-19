@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/mvvm/view_model_builder.dart';
+import '../../models/user_profile_model.dart';
 import '../../view_models/shipping_address_view_model.dart';
 
 class ShippingAddressScreen extends StatelessWidget {

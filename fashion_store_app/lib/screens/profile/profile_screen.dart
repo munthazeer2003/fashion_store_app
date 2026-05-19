@@ -20,7 +20,10 @@ class ProfileScreen extends StatelessWidget {
                 CircleAvatar(
                   radius: 40,
                   backgroundColor: const Color(0xFFF2F2F2),
-                  foregroundImage: AssetImage(viewModel.profileImage),
+                  foregroundImage: viewModel.hasNetworkProfileImage
+                      ? NetworkImage(viewModel.profileImage)
+                      : const AssetImage('assets/images/profile/profile.png')
+                          as ImageProvider,
                   onForegroundImageError: (exception, stackTrace) {},
                   child: const Icon(
                     Icons.person,
@@ -41,7 +44,11 @@ class ProfileScreen extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.logout),
                   title: const Text('Logout'),
-                  onTap: () {
+                  onTap: () async {
+                    await viewModel.logout();
+                    if (!context.mounted) {
+                      return;
+                    }
                     Navigator.pushReplacementNamed(context, AppRoutes.login);
                   },
                 ),
