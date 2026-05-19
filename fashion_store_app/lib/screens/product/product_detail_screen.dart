@@ -205,9 +205,9 @@ class ProductDetailScreen extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Added to cart')),
                           );
-                        } else if (viewModel.errorMessage != null) {
+                        } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(viewModel.errorMessage!)),
+                            const SnackBar(content: Text('Please login to add items to cart')),
                           );
                         }
                         Navigator.pushNamed(context, AppRoutes.cart);
